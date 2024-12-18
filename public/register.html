@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>注册</title>
+    <style>
+        #error-messages {
+            color: red;
+            list-style: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>注册</h1>
+    <form id="registerForm">
+        <label for="username">用户名:</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <label for="email">邮箱:</label>
+        <input type="email" id="email" name="email" required>
+        <br>
+        <label for="password">密码:</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+        <button type="submit">注册</button>
+    </form>
+    
+    <ul id="error-messages"></ul>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); // 阻止表单的默认提交行为
+
+            // 获取用户输入值
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            // 清空错误信息
+            const errorContainer = document.getElementById('error-messages');
+            errorContainer.innerHTML = '';
+
+            // 验证用户名、邮箱和密码的格式
+            const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/; // 用户名：字母、数字、下划线，3-20字符
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // 邮箱格式
+            const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
+            const errors = [];
+            if (!usernameRegex.test(username)) {
+                errors.push('用户名不合法：仅支持字母、数字、下划线，长度为3到20个字符。');
+            }
+            if (!emailRegex.test(email)) {
+                errors.push('邮箱格式无效，请输入正确的邮箱地址。');
+            }
+            if (!passwordRegex.test(password)) {
+                errors.push('密码不符合要求：至少8个字符，包含字母、数字和特殊字符。');
+            }
+
+            if (errors.length > 0) {
+                // 显示客户端验证的错误信息
+                errors.forEach(error => {
+                    const errorItem = document.createElement('li');
+                    errorItem.textContent = error;
+                    errorContainer.appendChild(errorItem);
+                });
+                return;
+            }
+
+            // 发送 AJAX 请求到后端
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    // 显示后端返回的错误信息
+                    if (data.errors) {
+                        data.errors.forEach(error => {
+                            const errorItem = document.createElement('li');
+                            errorItem.textContent = error;
+                            errorContainer.appendChild(errorItem);
+                        });
+                    } else {
+                        const errorItem = document.createElement('li');
+                        errorItem.textContent = data.message || '注册失败，请稍后重试。';
+                        errorContainer.appendChild(errorItem);
+                    }
+                } else {
+                    // 注册成功，跳转或提示
+                    alert(data.message || '注册成功！');
+                    window.location.href = '/login.html'; // 跳转到登录页面
+                }
+            } catch (err) {
+                console.error('请求失败:', err);
+                const errorItem = document.createElement('li');
+                errorItem.textContent = '服务器错误，请稍后重试。';
+                errorContainer.appendChild(errorItem);
+            }
+        });
+    </script>
+</body>
+</html>

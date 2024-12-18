@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户仪表盘</title>
+</head>
+<body>
+    <h1>用户仪表盘</h1>
+
+    <!-- 显示用户个人信息 -->
+    <div>
+        <img id="userAvatar" src="default-avatar.png" alt="用户头像" width="100">
+        <p>用户名: <span id="username"></span></p>
+        <p>邮箱: <span id="email"></span></p>
+    </div>
+
+    <!-- 编辑用户信息 -->
+    <h3>更新信息</h3>
+    <form id="updateForm">
+        <label for="usernameInput">新用户名：</label>
+        <input type="text" id="usernameInput" name="username" placeholder="输入新用户名" required><br><br>
+
+        <label for="emailInput">新电子邮件：</label>
+        <input type="email" id="emailInput" name="email" placeholder="输入新邮箱" required><br><br>
+
+        <button type="submit">更新信息</button>
+    </form>
+
+    <!-- 上传头像 -->
+    <h3>上传头像</h3>
+    <form id="avatarForm" enctype="multipart/form-data">
+        <input type="file" id="avatarInput" name="avatar" accept="image/*" required>
+        <button type="submit">上传头像</button>
+    </form>
+
+    <!-- 注销按钮 -->
+    <button id="logout">注销</button>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('未登录，请先登录！');
+            window.location.href = '/login.html';
+        }
+
+        // 加载用户信息
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('http://localhost:3000/api/user', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const userData = await response.json();
+
+                if (userData.success) {
+                    document.getElementById('username').innerText = userData.username;
+                    document.getElementById('email').innerText = userData.email;
+                    document.getElementById('userAvatar').src = userData.avatar || 'default-avatar.png';
+                } else {
+                    alert('加载用户数据失败，请重新登录。');
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                console.error('加载用户信息失败:', error);
+                alert('服务器错误，请稍后重试。');
+                window.location.href = '/login.html';
+            }
+        });
+
+        // 更新用户信息
+        document.getElementById('updateForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const newUsername = document.getElementById('usernameInput').value;
+            const newEmail = document.getElementById('emailInput').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/update-profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ username: newUsername, email: newEmail })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('信息更新成功！');
+                    window.location.reload();
+                } else {
+                    alert('更新失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('更新失败:', error);
+                alert('服务器错误，请稍后重试。');
+            }
+        });
+
+        // 上传头像
+        document.getElementById('avatarForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const fileInput = document.getElementById('avatarInput');
+    if (!fileInput.files.length) {
+        alert('请选择要上传的头像文件');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('avatar', fileInput.files[0]); // 确保字段名为 'avatar'
+
+    try {
+        const response = await fetch('http://localhost:3000/api/upload-avatar', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            alert('头像上传成功！');
+            document.getElementById('userAvatar').src = result.avatarUrl || 'default-avatar.png';
+        } else {
+            alert('头像上传失败: ' + result.message);
+        }
+    } catch (error) {
+        console.error('上传失败:', error);
+        alert('服务器错误，请稍后重试。');
+    }
+});
+
+        // 注销功能
+        document.getElementById('logout').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+        });
+    </script>
+</body>
+</html>

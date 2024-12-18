@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>编辑个人信息</title>
+</head>
+<body>
+    <h1>编辑个人信息</h1>
+    <form action="/edit-profile" method="POST" enctype="multipart/form-data">
+        <label for="username">用户名:</label>
+        <input type="text" name="username" id="username" placeholder="请输入新用户名">
+    
+        <label for="email">邮箱:</label>
+        <input type="email" name="email" id="email" placeholder="请输入新邮箱">
+    
+        <label for="avatar">上传头像:</label>
+        <input type="file" name="avatar" id="avatar">
+    
+        <button type="submit">保存更改</button>
+    </form>
+    
+    <div id="responseMessage"></div>
+
+    <script>
+        document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+
+            const responseMessage = document.getElementById('responseMessage');
+
+            try {
+                const response = await fetch('/edit-profile', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    responseMessage.style.color = 'green';
+                    responseMessage.textContent = '个人信息更新成功！';
+                } else {
+                    responseMessage.style.color = 'red';
+                    responseMessage.textContent = data.message || '更新失败，请重试。';
+                }
+            } catch (err) {
+                console.error('更新失败:', err);
+                responseMessage.style.color = 'red';
+                responseMessage.textContent = '发生错误，请稍后重试。';
+            }
+        });
+
+        // 页面加载时，自动填充当前用户信息
+        async function loadUserInfo() {
+            const response = await fetch('/user-info');
+            const user = await response.json();
+            if (user.success) {
+                document.getElementById('username').value = user.username;
+                document.getElementById('email').value = user.email;
+            }
+        }
+
+        loadUserInfo();
+    </script>
+</body>
+</html>
