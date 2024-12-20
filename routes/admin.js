@@ -1,11 +1,8 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const { authenticateJWT } = require("../middleware/jwtAuth");
-const { checkRole } = require("../middleware/auth");
+const adminController = require('../controllers/adminController');
 
-// 管理员专属页面
-router.get("/admin/dashboard", authenticateJWT, checkRole("admin"), (req, res) => {
-    res.json({ message: "欢迎来到管理员面板！" });
-});
+// 保护管理员仪表盘路由
+router.get('/admin/dashboard', adminController.dashboard);
 
 module.exports = router;

@@ -17,6 +17,11 @@
         <button type="submit">登录</button>
     </form>
 
+    <!-- 在登录表单下面添加一个忘记密码的链接 -->
+    <p>
+        <a href="/forgot-password.html">忘记密码？</a>
+    </p>
+
     <div id="message"></div> <!-- 显示消息 -->
 
     <script>
@@ -36,16 +41,15 @@
                 const result = await response.json();
 
                 if (result.success) {
-                alert('登录成功！');
-                console.log('Token:', result.token);
+                    alert('登录成功！');
+                    console.log('Token:', result.token);
 
-                   // 保存 Token 到 localStorage
-                   localStorage.setItem('token', result.token);
+                    // 保存 Token 到 localStorage
+                    localStorage.setItem('token', result.token);
 
-                   // 跳转到仪表盘页面
-                   window.location.href = '/dashboard.html';
-            }
-              else {
+                    // 跳转到仪表盘页面
+                    window.location.href = '/dashboard.html';
+                } else {
                     document.getElementById('message').innerText = result.message;
                 }
             } catch (error) {
