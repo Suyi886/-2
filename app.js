@@ -9,6 +9,7 @@ const db = require('./db');
 const middlewares = require('./middlewares');
 const adminRoutes = require('./routes/admin');
 const userRoutes = require('./routes/user');
+const authRouter = require('./routes/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,40 +29,13 @@ app.use(bodyParser.json());
 app.use(middlewares.upload.single('avatar'));
 
 // 挂载路由
-app.use('/api', adminRoutes);
 app.use('/api', userRoutes);
+app.use('/auth', authRouter);
+app.use('/admin', adminRoutes);
 
 // 根路径路由
 app.get('/', (req, res) => {
-    const isLoggedIn = req.session.user ? true : false;
-    const username = req.session.user ? req.session.user.username : '';
-
-    res.send(`
-        <h1>欢迎来到用户管理系统</h1>
-        <p>你可以使用以下功能：</p>
-        <ul>
-            <li><a href="/register.html">注册</a></li>
-            <li><a href="/login.html">登录</a></li>
-            <li><a href="/change-password.html">修改密码</a></li>
-            ${isLoggedIn ? `<li><a href="/dashboard">仪表盘</a></li>` : ''}
-        </ul>
-        ${isLoggedIn ? `<p>欢迎, ${username} | <a href="#" id="logoutLink">注销</a></p>` : ''}
-        <script>
-            const logoutLink = document.getElementById('logoutLink');
-            if (logoutLink) {
-                logoutLink.addEventListener('click', async (e) => {
-                    e.preventDefault();
-                    const response = await fetch('/logout', { method: 'GET' });
-                    if (response.ok) {
-                        alert('已注销成功');
-                        window.location.href = '/';
-                    } else {
-                        alert('注销失败，请重试');
-                    }
-                });
-            }
-        </script>
-    `);
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // 错误处理中间件

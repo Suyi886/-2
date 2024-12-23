@@ -83,7 +83,7 @@ exports.login = async (req, res) => {
         if (match) {
             const secretKey = process.env.ACCESS_TOKEN_SECRET;
             const accessToken = jwt.sign(
-                { id: user.id, username: user.username, email: user.email, avatar: user.avatar },
+                { id: user.id, username: user.username, email: user.email, role: user.role },
                 secretKey,
                 { expiresIn: '7d' }
             );
@@ -92,7 +92,7 @@ exports.login = async (req, res) => {
                 success: true,
                 message: '登录成功',
                 token: accessToken,
-                user: { id: user.id, username: user.username, email: user.email, avatar: user.avatar }
+                user: { id: user.id, username: user.username, email: user.email, role: user.role }
             });
         } else {
             return res.status(401).json({ success: false, message: '密码错误。' });
@@ -166,7 +166,7 @@ exports.getUserInfo = (req, res) => {
             return res.status(403).json({ success: false, message: 'Token 无效或过期。' });
         }
 
-        const sql = 'SELECT id, username, email, avatar FROM users WHERE id = ?';
+        const sql = 'SELECT id, username, email, avatar, role FROM users WHERE id = ?';
         db.query(sql, [decoded.id], (err, results) => {
             if (err) {
                 console.error('查询用户信息出错:', err.message);
@@ -178,7 +178,8 @@ exports.getUserInfo = (req, res) => {
                     success: true,
                     username: results[0].username,
                     email: results[0].email,
-                    avatar: results[0].avatar || 'default-avatar.png'
+                    avatar: results[0].avatar || 'default-avatar.png',
+                    role: results[0].role
                 });
             } else {
                 res.status(404).json({ success: false, message: '用户不存在。' });
