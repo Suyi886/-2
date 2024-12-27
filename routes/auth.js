@@ -1,8 +1,4 @@
-const express = require('express');
-const router = express.Router();
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-const db = require('../db'); // 假设你有一个 db.js 文件来处理数据库连接
+const jwt = require("jsonwebtoken");
 
 // 用户登录接口
 router.post("/login", async (req, res) => {
@@ -26,7 +22,7 @@ router.post("/login", async (req, res) => {
         // 生成 JWT Token，包含用户角色信息
         const token = jwt.sign(
             { id: user.id, username: user.username, role: user.role }, // 角色传入 token
-            process.env.ACCESS_TOKEN_SECRET, // 这里要替换为你自己的密钥，保证安全性
+            "your_jwt_secret_key", // 这里要替换为你自己的密钥，保证安全性
             { expiresIn: "1h" }
         );
 
@@ -35,5 +31,3 @@ router.post("/login", async (req, res) => {
         res.status(500).json({ error: "登录失败" });
     }
 });
-
-module.exports = router;
